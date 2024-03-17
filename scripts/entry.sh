@@ -1,4 +1,5 @@
 #!/bin/bash
+/server/scripts/start_filebrowser.sh
 
 cd ${STEAMAPPDIR}
 

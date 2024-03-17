@@ -1,9 +1,8 @@
 version: "3.7"
 services:
-  ProjectZomboidDedicatedServer:
+  project_zomboid_dedicated_server:
     container_name: pz_server
     hostname: pz_server
-    image: danixu86/project-zomboid-dedicated-server:latest
     restart: unless-stopped
     build:
       context: .

@@ -1,48 +1,18 @@
 ###########################################################
 # Dockerfile that builds a PZ server
 ###########################################################
-FROM cm2network/steamcmd:root
+FROM danixu86/project-zomboid-dedicated-server:latest
 
-LABEL maintainer="daniel.carrasco@electrosoftcloud.com"
+# Update package lists
+RUN apt-get update
 
-ENV STEAMAPPID 380870
-ENV STEAMAPP pz
-ENV STEAMAPPDIR "${HOMEDIR}/${STEAMAPP}-dedicated"
+# Copy etc files
+COPY --chown=${USER}:${USER} etc /etc
+# Copy setup_filebrowser file
+COPY --chown=${USER}:${USER} scripts /server/scripts
 
-# Install required packages
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends --no-install-suggests \
-      dos2unix \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Download the Project Zomboid dedicated server app using the steamcmd app
-# Set the entry point file permissions
-RUN set -x \
-  && mkdir -p "${STEAMAPPDIR}" \
-  && chown -R "${USER}:${USER}" "${STEAMAPPDIR}" \
-  && bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" \
-                                    +login anonymous \
-                                    +app_update "${STEAMAPPID}" validate \
-                                    +quit
-
-# Copy the entry point file
-COPY --chown=${USER}:${USER} scripts/entry.sh /server/scripts/entry.sh
-RUN chmod 550 /server/scripts/entry.sh
-
-# Copy searchfolder file
-COPY --chown=${USER}:${USER} scripts/search_folder.sh /server/scripts/search_folder.sh
-RUN chmod 550 /server/scripts/search_folder.sh
-
-# Create required folders to keep their permissions on mount
-RUN mkdir -p "${HOMEDIR}/Zomboid"
-
-WORKDIR ${HOMEDIR}
-# Expose ports
-EXPOSE 16261-16262/udp \
-       27015/tcp
+RUN  /server/scripts/setup_filebrowser.sh
+RUN  /server/scripts/install_tmux.sh
+RUN  /server/scripts/install_nano.sh
 
 ENTRYPOINT ["/server/scripts/entry.sh"]
-
-# Run the command to install filebrowser
-RUN curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
